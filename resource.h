@@ -3,8 +3,16 @@
 // Used by PASSGEN.rc
 //
 #define IDD_PASSGEN                     101
-#define IDI_ICON1                       102
 #define IDI_PASSGEN                     102
+#define IDC_CONTROL_GROUP               1001
+#define IDC_CHAR_SET                    1002
+#define IDC_CHAR_LOCK                   1003
+#define IDC_CHAR_RESET                  1004
+#define IDC_GENERATE                    1005
+#define IDC_SPIN1                       1006
+#define IDC_PASS_SPIN                   1006
+#define IDC_PASS_LEN                    1007
+#define IDC_PASS_LIST                   1008
 
 // Next default values for new objects
 // 
@@ -12,7 +20,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1001
+#define _APS_NEXT_CONTROL_VALUE         1009
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

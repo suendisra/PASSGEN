@@ -6,13 +6,16 @@
 #include "passgen.h"
 
 // STATIC PROTOTYPES
-static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
+static INT_PTR CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 
 /* wWinMain */
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previnst, LPWSTR cmd, int show)
 {
     // instantiate win struct for windows config
     WinInit(instance, previnst, cmd, show);
+
+    // load in any previously save settings
+    Settings(TRUE);
 
     // create and run the main dialog
     if(Dialog(MainWndProc, IDD_PASSGEN, NULL, &wnd) == TRUE)
@@ -27,7 +30,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previnst, LPWSTR cmd, int show
 }
 
 /**
-  @fn           static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+  @fn           static INT_PTR CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
   @brief        Main window procedure
   @param[in]    hwnd handle to window whose proc is being processed
   @param[in]    msg windows message to be processed
@@ -35,7 +38,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previnst, LPWSTR cmd, int show
   @param[in]    lp lparam associated with the message
   @return       system return value
 */
-LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+INT_PTR CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
     long    rval = 0;
 
@@ -64,6 +67,23 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         case WM_COMMAND:
             switch(LOWORD(wp))
             {
+                case IDC_CHAR_LOCK:
+                    Enable(hwnd, IDC_CHAR_SET, (SendDlgItemMessage(hwnd, IDC_CHAR_LOCK, BM_GETCHECK, 0, 0) == BST_UNCHECKED));
+                    break;
+
+                case IDC_CHAR_RESET:
+                    ResetDialog();
+                    break;
+
+                case IDC_GENERATE:
+                    GenPasswords(TRUE);
+                    DrawPasswords();
+                    break;
+
+                case IDC_PASS_LIST:
+                    /// TODO - grab mouse click position and determine which password was clicked
+                    break;
+
                 case IDCANCEL:
                     SendMessage(hwnd, WM_SYSCOMMAND, SC_CLOSE, 0);
                     break;
