@@ -2,7 +2,7 @@
   @file     passgen.h
   @brief    Header file for PASSGEN application
   @author   Charles Murray
-  @version  0.0.0
+  @version  1.0.0
 */
 #ifndef _PASSGEN_H_
 #define _PASSGEN_H_
@@ -16,7 +16,7 @@
 #define APP_COPYRIGHT   L"2025"
 #define APP_FILE        L"pg.dat"
 #define APP_TITLE       L"PASSGEN"
-#define APP_VERSION     L"0.0.0"
+#define APP_VERSION     L"1.0.0"
 
 #pragma comment(lib, "GPH.lib")
 #pragma comment(lib, "UTIL.lib")
