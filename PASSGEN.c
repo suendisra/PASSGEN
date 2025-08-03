@@ -1,7 +1,7 @@
 /**
   @file     passgen.c
   @brief    Source file for STUDY application
-  @author   Charles Murray
+  @author   suendisra
 */
 #include "passgen.h"
 

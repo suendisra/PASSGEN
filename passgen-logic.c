@@ -1,7 +1,7 @@
 /**
   @file     passgen-logic.c
   @brief    Source file for PASSGEN application
-  @author   Charles Murray
+  @author   suendisra
 */
 #include "passgen.h"
 

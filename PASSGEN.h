@@ -1,7 +1,7 @@
 /**
   @file     passgen.h
   @brief    Header file for PASSGEN application
-  @author   Charles Murray
+  @author   suendisra
   @version  1.0.0
 */
 #ifndef _PASSGEN_H_
