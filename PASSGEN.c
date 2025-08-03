@@ -5,6 +5,8 @@
 */
 #include "passgen.h"
 
+static MOUSE    mouse = {0};
+
 // STATIC PROTOTYPES
 static INT_PTR CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 
@@ -81,7 +83,17 @@ INT_PTR CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
                     break;
 
                 case IDC_PASS_LIST:
-                    /// TODO - grab mouse click position and determine which password was clicked
+                    switch(HIWORD(wp))
+                    {
+                        case STN_CLICKED:
+                            // take mouse click and put it into perspective of the picture control
+                            MouseScan(&mouse, NULL);
+                            ScreenToClient(GetDlgItem(hwnd, IDC_PASS_LIST), &mouse.click);
+
+                            // pass along re-calculated click to function to copy over to clipboard
+                            CopyPassword(mouse.click);
+                            break;
+                    }
                     break;
 
                 case IDCANCEL:

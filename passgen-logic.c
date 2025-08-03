@@ -5,6 +5,9 @@
 */
 #include "passgen.h"
 
+#define CLIPBOARD_ERROR     L"Unable to copy the selected item to the clipboard at the moment."
+#define CLIPBOARD_SUCCESS   L"The selected item has been copied to the clipboard."
+
 #define LIST_BACK_COLOR         GCOAL
 #define LIST_FONT_NAME          L"Consolas"
 #define LIST_FONT_SIZE          24
@@ -28,6 +31,24 @@ static void Defaults(void);
 static BOOL DrawPassword(const QUAD cell, const long index);
 static void SetupDialog(void);
 static BOOL SetupGDI(void);
+
+/* copy selected password to clipboard */
+void CopyPassword(const POINT click)
+{
+    INDEX   idx = -1;
+
+    idx = GridClick(grid, click, NULL, NULL, NULL);
+    if((idx >= 0) && (idx < grid.rows))
+    {
+        // successfully identified the password to copy over
+        if(StrClipboard(wnd.handl, L"%s", list[idx]) == TRUE)
+        {
+            Message(MSG_OK, wnd.handl, L"%s", CLIPBOARD_SUCCESS);
+        }else{
+            Message(MSG_ERR, wnd.handl, L"%s", CLIPBOARD_ERROR);
+        }
+    }
+}
 
 /* set in the defaults for the app */
 void Defaults(void)
@@ -58,11 +79,15 @@ void DrawPasswords(void)
 void GenPasswords(const BOOL grabconfig)
 {
     long    n = 0;
+    wchar_t af[STR_TINY] = {0};
 
     if(grabconfig == TRUE)
     {
         // reach back to dialog to update app config settings
-        /// TODO
+        TextGet(wnd.handl, IDC_PASS_LEN, af, sizeof(af));
+        Convert(CONVERT_STR_LNG, &app.len, af, sizeof(app.len));
+        TextGet(wnd.handl, IDC_CHAR_SET, app.bank, sizeof(app.bank));
+        app.locked = (SendDlgItemMessage(wnd.handl, IDC_CHAR_LOCK, BM_GETCHECK, 0, 0) == BST_CHECKED);
     }
 
     // generate all the passwords

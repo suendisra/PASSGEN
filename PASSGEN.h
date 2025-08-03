@@ -32,6 +32,12 @@ struct
 WNDW    wnd;
 
 /**
+  @fn           void CopyPassword(const POINT click);
+  @brief        copy selected password to clipboard
+*/
+void CopyPassword(const POINT click);
+
+/**
   @fn           void DrawPasswords(void)
   @brief        draw the list of passwords that have been generated
 */
