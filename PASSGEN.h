@@ -2,7 +2,6 @@
   @file     passgen.h
   @brief    Header file for PASSGEN application
   @author   suendisra
-  @version  1.0.0
 */
 #ifndef _PASSGEN_H_
 #define _PASSGEN_H_
@@ -18,9 +17,16 @@
 #define APP_TITLE       L"PASSGEN"
 #define APP_VERSION     L"1.0.0"
 
+// bring in appropriate version of library
+#ifndef _DEBUG
 #pragma comment(lib, "GPH.lib")
 #pragma comment(lib, "UTIL.lib")
 #pragma comment(lib, "WIN.lib")
+#else
+#pragma comment(lib, "GPHD.lib")
+#pragma comment(lib, "UTILD.lib")
+#pragma comment(lib, "WIND.lib")
+#endif
 
 struct
 {
