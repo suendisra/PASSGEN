@@ -244,9 +244,9 @@ BOOL Standup(void)
 void Shutdown(void)
 {
     Settings(FALSE);
-    PoolKill(pool);
+    PoolKill(&pool);
     FontKillGDI(font);
-    GridKill(grid);
+    GridKill(&grid);
     GphKill(&gph);
     WindowKill(&wnd);
 }

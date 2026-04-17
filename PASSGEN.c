@@ -22,7 +22,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previnst, LPWSTR cmd, int show
     // create and run the main dialog
     if(Dialog(MainWndProc, IDD_PASSGEN, NULL, &wnd))
     {
-        WindowConfig(LOOP_DLG, NULL, Standup, NULL, Shutdown, &wnd);
+        WindowConfig(Standup, NULL, Shutdown, &wnd);
         Loop(wnd);
     }
 
