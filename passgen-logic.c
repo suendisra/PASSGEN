@@ -5,8 +5,8 @@
 */
 #include "passgen.h"
 
-#define CLIPBOARD_ERROR     L"Unable to copy the selected item to the clipboard at the moment."
-#define CLIPBOARD_SUCCESS   L"The selected item has been copied to the clipboard."
+#define CLIPBOARD_ERROR         L"Unable to copy the selected item to the clipboard at the moment."
+#define CLIPBOARD_SUCCESS       L"The selected item has been copied to the clipboard."
 
 #define LIST_BACK_COLOR         GCOAL
 #define LIST_FONT_NAME          L"Consolas"
@@ -21,8 +21,8 @@
 #define PASS_SPIN_MAX           50
 
 static GPH      gph = {0};
-static GRID     grid = {0};
-static CLRPOOL  pool = {0};
+static GRID     grid = NULL;
+static CLRPOOL  pool = NULL;
 static INDEX    font = -1;
 static wchar_t  list[PASS_COUNT][STR_NORM] = {0};
 
@@ -38,10 +38,10 @@ void CopyPassword(const POINT click)
     INDEX   idx = -1;
 
     idx = GridClick(grid, click, NULL, NULL, NULL);
-    if((idx >= 0) && (idx < grid.rows))
+    if(Clamped(idx, -1, PASS_COUNT))
     {
         // successfully identified the password to copy over
-        if(StrClipboard(wnd.handl, L"%s", list[idx]) == TRUE)
+        if(StrClipboard(wnd.handl, L"%s", list[idx]))
         {
             Message(MSG_OK, wnd.handl, L"%s", CLIPBOARD_SUCCESS);
         }else{
@@ -62,7 +62,10 @@ void Defaults(void)
 /* helper function to draw each password in the list */
 BOOL DrawPassword(const QUAD cell, const long index)
 {
-    GphFontColor(gph, pool.color[index % pool.count], GTRANS);
+    const long      count = PoolCount(pool);
+    const COLORREF  clr = PoolColor((index % count), pool);
+
+    GphFontColor(gph, clr, GTRANS);
     GphText(gph, &cell, ALIGN_LEFT, L"%s", list[index]);
     return(TRUE);
 }
@@ -70,9 +73,15 @@ BOOL DrawPassword(const QUAD cell, const long index)
 /* draw the grid list of passwords */
 void DrawPasswords(void)
 {
-    GphClear(gph, NULL, LIST_BACK_COLOR);
-    GridFunc(grid, DrawPassword);
-    GphBlit(gph);
+    const HWND  hwnd = GetDlgItem(wnd.handl, IDC_PASS_LIST);
+
+    if(GphPaint(gph, hwnd))
+    {
+        GphClear(gph, NULL, LIST_BACK_COLOR);
+        GridFunc(grid, DrawPassword);
+        GphBlit(gph);
+        GphPaint(gph, hwnd);
+    }
 }
 
 /* create randomized passwords */
@@ -81,7 +90,7 @@ void GenPasswords(const BOOL grabconfig)
     long    n = 0;
     wchar_t af[STR_TINY] = {0};
 
-    if(grabconfig == TRUE)
+    if(grabconfig)
     {
         // reach back to dialog to update app config settings
         TextGet(wnd.handl, IDC_PASS_LEN, af, sizeof(af));
@@ -113,21 +122,21 @@ void ResetDialog(void)
 /* load in previously saved settings or save settings out to file */
 BOOL Settings(const BOOL load)
 {
-    const enum FILEMODE mode = ((load == TRUE) ? FILE_READ : FILE_WRITE);
+    const enum FILEMODE mode = (load ? FILE_READ : FILE_WRITE);
 
-    CFILE               cf = {0};
+    CFILE               cf = NULL;
     wchar_t             path[STR_PATH] = {0};
 
     BOOL                success = FALSE;
 
     // get system path for save data
-    if(TRUE == FolderApp(path, sizeof(path), L"%s", APP_FILE))
+    if(FolderApp(path, sizeof(path), L"%s", APP_FILE))
     {
         // open save data
-        if(TRUE == FileOpen(mode, path, &cf))
+        if(FileOpen(mode, path, &cf))
         {
             // iterate through each file_save or file_load call for demos
-            if(load == TRUE)
+            if(load)
             {
                 success = (FileRead(cf, &app, sizeof(app)) == sizeof(app));
             }else{
@@ -138,7 +147,7 @@ BOOL Settings(const BOOL load)
         }
     }
 
-    if((load == TRUE) && (success == FALSE))
+    if(load && !success)
     {
         // load in some defaults
         Defaults();
@@ -151,7 +160,7 @@ BOOL Settings(const BOOL load)
 void SetupDialog(void)
 {
     // stretch out the bitmap display area
-    SendDlgItemMessage(wnd.handl, IDC_PASS_LIST, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)gph.mem.bmp);
+    SendDlgItemMessage(wnd.handl, IDC_PASS_LIST, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)GphBmp(gph));
 
     // apply spin control range of 1 - 50
     SendDlgItemMessage(wnd.handl, IDC_PASS_SPIN, UDM_SETRANGE, 0, MAKELPARAM(PASS_SPIN_MAX, PASS_SPIN_MIN));
@@ -174,33 +183,30 @@ BOOL SetupGDI(void)
     BOOL    success = FALSE;
 
     // adjust dialog client dimensions for password list
-    if(Dims(wnd.handl, IDC_CONTROL_GROUP, &ctrl, NULL) == TRUE)
+    if(Dims(wnd.handl, IDC_CONTROL_GROUP, &ctrl, NULL))
     {
         // calculate the area needed to display the list, don't forget to cut off the title bar
         Quad(ctrl.x1, wnd.client.y1, ctrl.x2, (wnd.client.y2 - ctrl.cy - (wnd.bounds.cy - wnd.client.cy)), &dims);
         Quad(0, 0, dims.cx, dims.cy, &dims);
 
         // stand up the graphics
-        if(Gph(GetDlgItem(wnd.handl, IDC_PASS_LIST), dims, &gph) == TRUE)
+        if(Gph(GetDlgItem(wnd.handl, IDC_PASS_LIST), dims, &gph))
         {
             // put the list into a grid
-            if(Grid(&gph, &dims, PASS_COUNT, PASS_COLS, HEADER_NONE, &grid) == TRUE)
+            if(Grid(gph, &dims, &grid))
             {
-                // create the font needed for the password list
+                GridConfig(grid, HEADER_NONE, PASS_COUNT, PASS_COLS);
+
+                // create the font needed for the password list and set it tot he GPH object
                 font = FontGDI(LIST_FONT_NAME, LIST_FONT_SIZE, TRUE, FALSE, FALSE);
-                if(font >= 0)
+                if((font >= 0) && GphFontSet(gph, font))
                 {
-                    // assign the font
-                    GphFont(&gph, font);
-
                     // build the color pool for the passwords
-                    MemClear(&pool, sizeof(pool));
-                    pool.color[pool.count++] = GSEAGREEN;
-                    pool.color[pool.count++] = GORANGE;
-                    pool.color[pool.count++] = GLAVENDER;
-                    pool.color[pool.count++] = GKHAKI;
-
-                    // all good with GDI, move on
+                    Pool(GTRANS, GTRANS, GTRANS, 0, &pool);
+                    PoolAdd(GSEAGREEN, pool);
+                    PoolAdd(GORANGE, pool);
+                    PoolAdd(GLAVENDER, pool);
+                    PoolAdd(GKHAKI, pool);
                     success = TRUE;
                 }
             }
@@ -216,12 +222,10 @@ BOOL Standup(void)
     BOOL    success = FALSE;
 
     // load and set application icon
-    if(Resource(RSC_TYPE_ICO, IDI_PASSGEN, &wnd.icon, sizeof(wnd.icon)) == TRUE)
+    if(WindowIcon(IDI_PASSGEN, &wnd))
     {
-        WindowIcon(wnd.handl, 0, wnd.icon);
-
         // stand up GDI graphics
-        if(SetupGDI() == TRUE)
+        if(SetupGDI())
         {
             // configure the fields in the dialog
             SetupDialog();
@@ -239,7 +243,10 @@ BOOL Standup(void)
 /* stop and tear down application */
 void Shutdown(void)
 {
-    FontKillGDI(font);
-    GphKill(&gph);
     Settings(FALSE);
+    PoolKill(pool);
+    FontKillGDI(font);
+    GridKill(grid);
+    GphKill(&gph);
+    WindowKill(&wnd);
 }

@@ -8,6 +8,7 @@
 
 #include <util.h>
 #include <gph.h>
+#include <gph-grid.h>
 #include <win.h>
 
 #include "resource.h"

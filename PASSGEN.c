@@ -20,12 +20,10 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previnst, LPWSTR cmd, int show
     Settings(TRUE);
 
     // create and run the main dialog
-    if(Dialog(MainWndProc, IDD_PASSGEN, NULL, &wnd) == TRUE)
+    if(Dialog(MainWndProc, IDD_PASSGEN, NULL, &wnd))
     {
-        // loop application window procedure
-        wnd.init = Standup;
-        wnd.stop = Shutdown;
-        Loop(&wnd);
+        WindowConfig(LOOP_DLG, NULL, Standup, NULL, Shutdown, &wnd);
+        Loop(wnd);
     }
 
     return(0);
@@ -57,13 +55,17 @@ INT_PTR CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
             {
                 case SC_CLOSE:
                 case SC_DEFAULT:
-                    Kill(hwnd);
+                    PostQuitMessage(0);
                     break;
 
                 default:
                     rval = DefWindowProc(hwnd, msg, wp, lp);
                     break;
             }
+            break;
+
+        case WM_PAINT:
+            DrawPasswords();
             break;
 
         case WM_COMMAND:
@@ -94,10 +96,6 @@ INT_PTR CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
                             CopyPassword(mouse.click);
                             break;
                     }
-                    break;
-
-                case IDCANCEL:
-                    SendMessage(hwnd, WM_SYSCOMMAND, SC_CLOSE, 0);
                     break;
             }
             break;
