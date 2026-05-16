@@ -7,8 +7,11 @@
 #define _PASSGEN_H_
 
 #include <util.h>
+
 #include <gph.h>
 #include <gph-grid.h>
+#include <gph-pool.h>
+
 #include <win.h>
 
 #include "resource.h"

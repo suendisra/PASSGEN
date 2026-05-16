@@ -21,7 +21,7 @@
 #define PASS_SPIN_MAX           50
 
 static GPH      gph = {0};
-static GRID     grid = NULL;
+static GRID     grid = {0};
 static CLRPOOL  pool = NULL;
 static INDEX    font = -1;
 static wchar_t  list[PASS_COUNT][STR_NORM] = {0};
@@ -179,6 +179,7 @@ BOOL SetupGDI(void)
 {
     QUAD    dims = {0};
     QUAD    ctrl = {0};
+    long    c = 0;
 
     BOOL    success = FALSE;
 
@@ -202,11 +203,12 @@ BOOL SetupGDI(void)
                 if((font >= 0) && GphFontSet(gph, font))
                 {
                     // build the color pool for the passwords
-                    Pool(GTRANS, GTRANS, GTRANS, 0, &pool);
-                    PoolAdd(GSEAGREEN, pool);
-                    PoolAdd(GORANGE, pool);
-                    PoolAdd(GLAVENDER, pool);
-                    PoolAdd(GKHAKI, pool);
+                    Pool(&pool);
+                    PoolClear(pool);
+                    PoolAdd(GSEAGREEN, c++, pool);
+                    PoolAdd(GORANGE, c++, pool);
+                    PoolAdd(GLAVENDER, c++, pool);
+                    PoolAdd(GKHAKI, c++, pool);
                     success = TRUE;
                 }
             }
