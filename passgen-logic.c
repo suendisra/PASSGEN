@@ -22,6 +22,7 @@
 
 static GPH      gph = {0};
 static GRID     grid = {0};
+static MOUSE    mouse = {0};
 static CLRPOOL  pool = NULL;
 static INDEX    font = -1;
 static wchar_t  list[PASS_COUNT][STR_NORM] = {0};
@@ -31,6 +32,41 @@ static void Defaults(void);
 static BOOL DrawPassword(const QUAD cell, const long index);
 static void SetupDialog(void);
 static BOOL SetupGDI(void);
+
+/* handle user commands to the dialog window */
+void Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
+{
+    if(lp == 0){}
+    switch(LOWORD(wp))
+    {
+        case IDC_CHAR_LOCK:
+            Enable(hwnd, IDC_CHAR_SET, (SendDlgItemMessage(hwnd, IDC_CHAR_LOCK, BM_GETCHECK, 0, 0) == BST_UNCHECKED));
+            break;
+
+        case IDC_CHAR_RESET:
+            ResetDialog(hwnd);
+            break;
+
+        case IDC_GENERATE:
+            GenPasswords(TRUE);
+            DrawPasswords(hwnd);
+            break;
+
+        case IDC_PASS_LIST:
+            switch(HIWORD(wp))
+            {
+                case STN_CLICKED:
+                    // take mouse click and put it into perspective of the picture control
+                    MouseScan(&mouse, NULL);
+                    ScreenToClient(GetDlgItem(hwnd, IDC_PASS_LIST), &mouse.click);
+
+                    // pass along re-calculated click to function to copy over to clipboard
+                    CopyPassword(mouse.click);
+                    break;
+            }
+            break;
+    }
+}
 
 /* copy selected password to clipboard */
 void CopyPassword(const POINT click)
@@ -71,16 +107,16 @@ BOOL DrawPassword(const QUAD cell, const long index)
 }
 
 /* draw the grid list of passwords */
-void DrawPasswords(void)
+void DrawPasswords(const HWND hwnd)
 {
-    const HWND  hwnd = GetDlgItem(wnd.handl, IDC_PASS_LIST);
+    const HWND  plist = GetDlgItem(hwnd, IDC_PASS_LIST);
 
-    if(GphPaint(gph, hwnd))
+    if(GphPaint(gph, plist))
     {
         GphClear(gph, NULL, LIST_BACK_COLOR);
         GridFunc(grid, DrawPassword);
         GphBlit(gph);
-        GphPaint(gph, hwnd);
+        GphPaint(gph, plist);
     }
 }
 
@@ -108,7 +144,7 @@ void GenPasswords(const BOOL grabconfig)
 }
 
 /* revert dialog settings to default, regenerate passwords */
-void ResetDialog(void)
+void ResetDialog(const HWND hwnd)
 {
     // set in defaults, place in dialog
     Defaults();
@@ -116,7 +152,7 @@ void ResetDialog(void)
 
     // now regenerate and draw the passwords
     GenPasswords(FALSE);
-    DrawPasswords();
+    DrawPasswords(hwnd);
 }
 
 /* load in previously saved settings or save settings out to file */
@@ -223,6 +259,10 @@ BOOL Standup(void)
 {
     BOOL    success = FALSE;
 
+    // set dialog caption and center on screen
+    TextSet(wnd.handl, 0, L"%s %s", APP_TITLE, APP_VERSION);
+    Center(wnd.handl, 0, NULL);
+
     // load and set application icon
     if(WindowIcon(IDI_PASSGEN, &wnd))
     {
@@ -234,7 +274,7 @@ BOOL Standup(void)
 
             // all is well, move on
             GenPasswords(FALSE);
-            DrawPasswords();
+            DrawPasswords(wnd.handl);
             success = TRUE;
         }
     }

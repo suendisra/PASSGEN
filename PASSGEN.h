@@ -42,6 +42,12 @@ struct
 WNDW    wnd;
 
 /**
+  @fn           void Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
+  @brief        handle user commands to the dialog window
+*/
+void Command(const HWND hwnd, const WPARAM wp, const LPARAM lp);
+
+/**
   @fn           void CopyPassword(const POINT click);
   @brief        copy selected password to clipboard
 */
@@ -51,7 +57,7 @@ void CopyPassword(const POINT click);
   @fn           void DrawPasswords(void)
   @brief        draw the list of passwords that have been generated
 */
-void DrawPasswords(void);
+void DrawPasswords(const HWND hwnd);
 
 /**
   @fn           void GenPasswords(const BOOL grabconfig)
@@ -64,7 +70,7 @@ void GenPasswords(const BOOL grabconfig);
   @fn           void ResetDialog(void)
   @brief        Force dialog configuration to return to default
 */
-void ResetDialog(void);
+void ResetDialog(const HWND hwnd);
 
 /**
   @fn           BOOL Settings(const BOOL load)
