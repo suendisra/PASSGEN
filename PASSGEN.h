@@ -44,8 +44,9 @@ WNDW    wnd;
 /**
   @fn           void Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
   @brief        handle user commands to the dialog window
+  @return       TRUE if command was handled, FALSE otherwise
 */
-void Command(const HWND hwnd, const WPARAM wp, const LPARAM lp);
+BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp);
 
 /**
   @fn           void CopyPassword(const POINT click);

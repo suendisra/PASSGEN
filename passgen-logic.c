@@ -34,8 +34,10 @@ static void SetupDialog(void);
 static BOOL SetupGDI(void);
 
 /* handle user commands to the dialog window */
-void Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
+BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
 {
+    BOOL    handled = TRUE;
+
     if(lp == 0){}
     switch(LOWORD(wp))
     {
@@ -65,7 +67,13 @@ void Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
                     break;
             }
             break;
+
+        default:
+            handled = FALSE;
+            break;
     }
+
+    return(handled);
 }
 
 /* copy selected password to clipboard */
@@ -232,7 +240,7 @@ BOOL SetupGDI(void)
             // put the list into a grid
             if(Grid(gph, &dims, &grid))
             {
-                GridConfig(grid, HEADER_NONE, PASS_COUNT, PASS_COLS);
+                GridConfig(&grid, HEADER_NONE, PASS_COUNT, PASS_COLS);
 
                 // create the font needed for the password list and set it tot he GPH object
                 font = FontGDI(LIST_FONT_NAME, LIST_FONT_SIZE, TRUE, FALSE, FALSE);
