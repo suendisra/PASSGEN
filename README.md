@@ -1,4 +1,4 @@
-# PASSGEN 1.0.0
+# PASSGEN 1.6.1
 
 ### About
 > Simple randomized-password generator application under Win32.

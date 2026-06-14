@@ -16,10 +16,10 @@
 
 #include "resource.h"
 
-#define APP_COPYRIGHT   L"2025"
+#define APP_COPYRIGHT   L"2026"
 #define APP_FILE        L"pg.dat"
 #define APP_TITLE       L"PASSGEN"
-#define APP_VERSION     L"1.0.0"
+#define APP_VERSION     L"1.6.1"
 
 // bring in appropriate version of library
 #ifndef _DEBUG

@@ -42,7 +42,7 @@ BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
     switch(LOWORD(wp))
     {
         case IDC_CHAR_LOCK:
-            Enable(hwnd, IDC_CHAR_SET, (SendDlgItemMessage(hwnd, IDC_CHAR_LOCK, BM_GETCHECK, 0, 0) == BST_UNCHECKED));
+            Enable(hwnd, IDC_CHAR_SET, !ButtonChecked(hwnd, IDC_CHAR_LOCK));
             break;
 
         case IDC_CHAR_RESET:
@@ -207,14 +207,14 @@ void SetupDialog(void)
     SendDlgItemMessage(wnd.handl, IDC_PASS_LIST, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)GphBmp(gph));
 
     // apply spin control range of 1 - 50
-    SendDlgItemMessage(wnd.handl, IDC_PASS_SPIN, UDM_SETRANGE, 0, MAKELPARAM(PASS_SPIN_MAX, PASS_SPIN_MIN));
+    UpDownRange(wnd.handl, IDC_PASS_SPIN, PASS_SPIN_MIN, PASS_SPIN_MAX);
     TextSet(wnd.handl, IDC_PASS_LEN, L"%ld", max(app.len, PASS_SPIN_MIN));
 
     // drop in the character bank
     TextSet(wnd.handl, IDC_CHAR_SET, L"%s", app.bank);
 
     // apply locking mechanism, if necessary
-    SendDlgItemMessage(wnd.handl, IDC_CHAR_LOCK, BM_SETCHECK, ((app.locked == TRUE) ? BST_CHECKED : BST_UNCHECKED), 0);
+    ButtonCheck(wnd.handl, IDC_CHAR_LOCK, app.locked);
     Enable(wnd.handl, IDC_CHAR_SET, !app.locked);
 }
 
