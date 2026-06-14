@@ -80,12 +80,15 @@ BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
 void CopyPassword(const POINT click)
 {
     INDEX   idx = -1;
+    wchar_t temp[STR_NORM] = {0};
 
     idx = GridClick(grid, click, NULL, NULL, NULL);
     if(Clamped(idx, -1, PASS_COUNT))
     {
         // successfully identified the password to copy over
-        if(StrClipboard(wnd.handl, L"%s", list[idx]))
+        StrCopy(temp, sizeof(temp), list[idx], 0);
+        StrReplace(temp, sizeof(temp), L"&&", L"&", FALSE);
+        if(StrClipboard(wnd.handl, L"%s", temp))
         {
             Message(MSG_OK, wnd.handl, L"%s", CLIPBOARD_SUCCESS);
         }else{
@@ -148,6 +151,7 @@ void GenPasswords(const BOOL grabconfig)
     {
         StrPassword(app.bank, sizeof(app.bank), &list[n][0], sizeof(list[n]));
         list[n][app.len] = CHARNULL;
+        StrReplace(list[n], sizeof(list[n]), L"&", L"&&", FALSE);
     }
 }
 
