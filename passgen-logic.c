@@ -29,7 +29,7 @@ static wchar_t  list[PASS_COUNT][STR_NORM] = {0};
 
 // STATIC PROTOTYPES
 static void Defaults(void);
-static BOOL DrawPassword(const QUAD cell, const long index);
+static BOOL DrawPassword(const QUAD cell, const INDEX index, void *userdata);
 static void SetupDialog(void);
 static BOOL SetupGDI(void);
 
@@ -107,7 +107,7 @@ void Defaults(void)
 }
 
 /* helper function to draw each password in the list */
-BOOL DrawPassword(const QUAD cell, const long index)
+static BOOL DrawPassword(const QUAD cell, const INDEX index, void *userdata)
 {
     const long      count = PoolCount(pool);
     const COLORREF  clr = PoolColor((index % count), pool);
@@ -125,7 +125,7 @@ void DrawPasswords(const HWND hwnd)
     if(GphPaint(gph, plist))
     {
         GphClear(gph, NULL, LIST_BACK_COLOR);
-        GridFunc(grid, DrawPassword);
+        GridFunc(grid, NULL, DrawPassword);
         GphBlit(gph);
         GphPaint(gph, plist);
     }
