@@ -140,10 +140,10 @@ void GenPasswords(const BOOL grabconfig)
     if(grabconfig)
     {
         // reach back to dialog to update app config settings
-        TextGet(wnd.handl, IDC_PASS_LEN, af, sizeof(af));
-        Convert(CONVERT_STR_LNG, &app.len, af, sizeof(app.len));
         TextGet(wnd.handl, IDC_CHAR_SET, app.bank, sizeof(app.bank));
-        app.locked = (SendDlgItemMessage(wnd.handl, IDC_CHAR_LOCK, BM_GETCHECK, 0, 0) == BST_CHECKED);
+        TextGet(wnd.handl, IDC_PASS_LEN, af, sizeof(af));
+        app.len = wcstol(af, NULL, BASE_10);
+        app.locked = ButtonChecked(wnd.handl, IDC_CHAR_LOCK);
     }
 
     // generate all the passwords

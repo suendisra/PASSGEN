@@ -6,13 +6,17 @@
 #ifndef _PASSGEN_H_
 #define _PASSGEN_H_
 
-#include <util.h>
-
-#include <gph.h>
+#include <gph-font.h>
 #include <gph-grid.h>
 #include <gph-pool.h>
 
-#include <win.h>
+#include <util-file.h>
+#include <util-math.h>
+#include <util-mem.h>
+#include <util-std.h>
+#include <util-str.h>
+
+#include <win-std.h>
 
 #include "resource.h"
 
