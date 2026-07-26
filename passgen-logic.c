@@ -112,8 +112,12 @@ static BOOL DrawPassword(const QUAD cell, const INDEX index, void *userdata)
     const long      count = PoolCount(pool);
     const COLORREF  clr = PoolColor((index % count), pool);
 
-    GphFontColor(gph, clr, GTRANS);
-    GphText(gph, &cell, ALIGN_LEFT, L"%s", list[index]);
+    if(userdata == NULL)
+    {
+        GphFontColor(gph, clr, GTRANS);
+        GphText(gph, &cell, ALIGN_LEFT, L"%s", list[index]);
+    }
+
     return(TRUE);
 }
 
