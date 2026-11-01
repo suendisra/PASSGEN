@@ -35,6 +35,7 @@ static BOOL SetupGDI(void);
 /* handle user commands to the dialog window */
 BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
 {
+    BOOL    checked = FALSE;
     BOOL    handled = TRUE;
 
     LTRACE(logger, IDS_TRACE_ENTER, L"Command()");
@@ -43,14 +44,18 @@ BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
     switch(LOWORD(wp))
     {
         case IDC_CHAR_LOCK:
-            Enable(hwnd, IDC_CHAR_SET, !ButtonChecked(hwnd, IDC_CHAR_LOCK));
+            checked = !ButtonChecked(hwnd, IDC_CHAR_LOCK);
+            LINFO(logger, IDS_CHAR_LOCK, (checked ? L"Locking" : L"Unlocking"));
+            Enable(hwnd, IDC_CHAR_SET, checked);
             break;
 
         case IDC_CHAR_RESET:
+            LINFO(logger, IDS_RESET_DIALOG);
             ResetDialog(hwnd);
             break;
 
         case IDC_GENERATE:
+            LINFO(logger, IDS_PASSWORD_REGEN);
             GenPasswords(TRUE);
             DrawPasswords(hwnd);
             break;
@@ -62,6 +67,7 @@ BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
                     // take mouse click and put it into perspective of the picture control
                     MouseScan(&mouse, NULL);
                     ScreenToClient(GetDlgItem(hwnd, IDC_PASS_LIST), &mouse.click);
+                    LINFO(logger, IDS_MOUSE_CLICK, mouse.click.x, mouse.click.y);
 
                     // pass along re-calculated click to function to copy over to clipboard
                     CopyPassword(mouse.click);
@@ -83,6 +89,7 @@ void CopyPassword(const POINT click)
 {
     INDEX   idx = -1;
     wchar_t temp[STR_NORM] = {0};
+    BOOL    success = FALSE;
 
     LTRACE(logger, IDS_TRACE_ENTER, L"CopyPassword()");
 
@@ -92,7 +99,10 @@ void CopyPassword(const POINT click)
         // successfully identified the password to copy over
         StrCopy(temp, sizeof(temp), list[idx], 0);
         StrReplace(temp, sizeof(temp), L"&&", L"&", FALSE);
-        if(StrClipboard(wnd.handl, L"%s", temp))
+        success = StrClipboard(wnd.handl, L"%s", temp);
+
+        LINFO(logger, IDS_COPY_PASSWORD_TO_CLIPBOARD, (success ? L"successfully" : L"unsuccessfully"));
+        if(success)
         {
             Message(MSG_OK, wnd.handl, L"%s", CLIPBOARD_SUCCESS);
         }else{
@@ -128,6 +138,7 @@ static BOOL DrawPassword(const QUAD cell, const INDEX index, void *userdata)
     {
         GphFontColor(gph, clr, GTRANS);
         GphText(gph, &cell, ALIGN_LEFT, L"%s", list[index]);
+        LINFO(logger, IDS_PASSWORD_TEXT_DRAWN, index, list[index]);
     }
 
     LTRACE(logger, IDS_TRACE_EXIT, L"DrawPassword()");
@@ -143,10 +154,14 @@ void DrawPasswords(const HWND hwnd)
 
     if(GphPaint(gph, plist))
     {
+        LINFO(logger, IDS_DRAWING_STARTING);
+
         GphClear(gph, NULL, LIST_BACK_COLOR);
         GridFunc(grid, NULL, DrawPassword);
         GphBlit(gph);
         GphPaint(gph, plist);
+
+        LINFO(logger, IDS_DRAWING_COMPLETE);
     }
 
     LTRACE(logger, IDS_TRACE_EXIT, L"DrawPasswords()");
@@ -165,11 +180,12 @@ void GenPasswords(const BOOL grabconfig)
         // reach back to dialog to update app config settings
         TextGet(wnd.handl, IDC_CHAR_SET, app.bank, sizeof(app.bank));
         TextGet(wnd.handl, IDC_PASS_LEN, af, sizeof(af));
-        app.len = wcstol(af, NULL, BASE_10);
+        app.len = ToLong(af);
         app.locked = ButtonChecked(wnd.handl, IDC_CHAR_LOCK);
     }
 
     // generate all the passwords
+    LINFO(logger, IDS_GENERATING_PASSWORDS, PASS_COUNT);
     for(n = 0; (n < PASS_COUNT); ++n)
     {
         StrPassword(app.bank, sizeof(app.bank), &list[n][0], sizeof(list[n]));
@@ -244,6 +260,7 @@ BOOL Settings(const BOOL load)
         if(FileOpen(mode, path, &cf))
         {
             // iterate through each file_save or file_load call for demos
+            LINFO(logger, IDS_FILE_OPENED, (load ? L"reading" : L"writing"));
             if(load)
             {
                 success = (FileRead(cf, &app, sizeof(app)) == sizeof(app));
@@ -251,6 +268,7 @@ BOOL Settings(const BOOL load)
                 success = (FileWrite(cf, &app, sizeof(app)) == sizeof(app));
             }
 
+            LINFO(logger, IDS_FILE_FUNCTION, (success ? L"successfully" : L"UNSUCCESSFULLY"), (load ? L"read from" : L"writen to"), APP_FILE);
             FileClose(&cf);
         }
     }
@@ -268,14 +286,18 @@ BOOL Settings(const BOOL load)
 /* configure dialog field controls */
 void SetupDialog(void)
 {
+    long        length = max(app.len, PASS_SPIN_MIN);
+
     LTRACE(logger, IDS_TRACE_ENTER, L"SetupDialog()");
 
     // stretch out the bitmap display area
     SendDlgItemMessage(wnd.handl, IDC_PASS_LIST, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)GphBmp(gph));
+    LINFO(logger, IDS_PASS_LIST_IMAGE_SET);
 
     // apply spin control range of 1 - 50
     UpDownRange(wnd.handl, IDC_PASS_SPIN, PASS_SPIN_MIN, PASS_SPIN_MAX);
-    TextSet(wnd.handl, IDC_PASS_LEN, L"%ld", max(app.len, PASS_SPIN_MIN));
+    TextSet(wnd.handl, IDC_PASS_LEN, L"%ld", length);
+    LINFO(logger, IDS_PASS_LIST_LENGTH, length);
 
     // drop in the character bank
     TextSet(wnd.handl, IDC_CHAR_SET, L"%s", app.bank);
@@ -308,15 +330,20 @@ BOOL SetupGDI(void)
         // stand up the graphics
         if(Gph(GetDlgItem(wnd.handl, IDC_PASS_LIST), dims, &gph))
         {
+            LINFO(logger, IDS_GRAPHICS_OBJECT_CREATED, dims.cx, dims.cy);
+
             // put the list into a grid
             if(Grid(gph, &dims, &grid))
             {
                 GridConfig(&grid, HEADER_NONE, PASS_COUNT, PASS_COLS);
+                LINFO(logger, IDS_GRID_CREATED_AND_SET, PASS_COUNT, PASS_COLS);
 
                 // create the font needed for the password list and set it tot he GPH object
                 font = FontGDI(LIST_FONT_NAME, LIST_FONT_SIZE, TRUE, FALSE, FALSE);
                 if((font >= 0) && GphFontSet(gph, font))
                 {
+                    LINFO(logger, IDS_FONT_CREATED_AND_SET, font);
+
                     // build the color pool for the passwords
                     Pool(&pool);
                     PoolClear(pool);
@@ -324,6 +351,7 @@ BOOL SetupGDI(void)
                     PoolAdd(GORANGE, c++, pool);
                     PoolAdd(GLAVENDER, c++, pool);
                     PoolAdd(GKHAKI, c++, pool);
+                    LINFO(logger, IDS_POOL_GENERATED);
                     success = TRUE;
                 }
             }
@@ -348,6 +376,8 @@ BOOL Standup(void)
     // load and set application icon
     if(WindowIcon(IDI_PASSGEN, &wnd))
     {
+        LINFO(logger, IDS_ICON_SET);
+
         // stand up GDI graphics
         if(SetupGDI())
         {

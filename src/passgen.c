@@ -20,9 +20,13 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previnst, LPWSTR cmd, int show
         // create and run the main dialog
         if(Dialog(IDD_PASSGEN, NULL, &wnd))
         {
+            LINFO(logger, IDS_DIALOG_CREATED, APP_TITLE);
+
             WindowConfig(Standup, NULL, Shutdown, &wnd);
             WindowFunc(WM_PAINT, (void*)DrawPasswords, &wnd);
             WindowFunc(WM_COMMAND, (void*)Command, &wnd);
+            LINFO(logger, IDS_DIALOG_CONFIGURED, APP_TITLE);
+
             Loop(wnd);
         }
 

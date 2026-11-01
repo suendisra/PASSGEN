@@ -21,7 +21,7 @@
 
 #define APP_COPYRIGHT   L"2026"
 #define APP_FILE        L"pg.dat"
-#define APP_LOG         L"pglog.txt"
+#define APP_LOG         L"pg-log.txt"
 #define APP_TITLE       L"PASSGEN"
 #define APP_VERSION     L"1.6.1"
 
