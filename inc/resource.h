@@ -1,9 +1,11 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by PASSGEN.rc
+// Used by C:\PROJECTS\PASSGEN\PASSGEN.rc
 //
 #define IDD_PASSGEN                     101
 #define IDI_PASSGEN                     102
+#define IDS_TRACE_ENTER                 104
+#define IDS_TRACE_EXIT                  105
 #define IDC_CONTROL_GROUP               1001
 #define IDC_CHAR_SET                    1002
 #define IDC_CHAR_LOCK                   1003
@@ -18,7 +20,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        104
+#define _APS_NEXT_RESOURCE_VALUE        105
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1009
 #define _APS_NEXT_SYMED_VALUE           101
