@@ -1,7 +1,6 @@
 /**
   @file     passgen.h
   @brief    Header file for PASSGEN application
-  @author   suendisra
 */
 #ifndef _PASSGEN_H_
 #define _PASSGEN_H_
@@ -22,6 +21,7 @@
 
 #define APP_COPYRIGHT   L"2026"
 #define APP_FILE        L"pg.dat"
+#define APP_LOG         L"pglog.txt"
 #define APP_TITLE       L"PASSGEN"
 #define APP_VERSION     L"1.6.1"
 
@@ -44,6 +44,7 @@ struct
 }app;
 
 WNDW    wnd;
+LOGGER  logger;
 
 /**
   @fn           void Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
@@ -70,6 +71,14 @@ void DrawPasswords(const HWND hwnd);
   @param[in]    grabconfig if true, grabs current configuration in dialog
 */
 void GenPasswords(const BOOL grabconfig);
+
+/**
+  @fn               BOOL Logging(const BOOL load)
+  @brief            initializes or stops logging API for the application
+  @param[in]        load if TRUE, initializes; if FALSE, terminates
+  @return           TRUE if successfully started/stopped
+*/
+BOOL Logging(const BOOL load);
 
 /**
   @fn           void ResetDialog(void)

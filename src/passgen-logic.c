@@ -1,7 +1,6 @@
 /**
   @file     passgen-logic.c
   @brief    Source file for PASSGEN application
-  @author   suendisra
 */
 #include "passgen.h"
 
@@ -38,6 +37,8 @@ BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
 {
     BOOL    handled = TRUE;
 
+    LTRACE(logger, IDS_TRACE_ENTER, L"Command()");
+
     if(lp == 0){}
     switch(LOWORD(wp))
     {
@@ -73,6 +74,7 @@ BOOL Command(const HWND hwnd, const WPARAM wp, const LPARAM lp)
             break;
     }
 
+    LTRACE(logger, IDS_TRACE_EXIT, L"Command()");
     return(handled);
 }
 
@@ -81,6 +83,8 @@ void CopyPassword(const POINT click)
 {
     INDEX   idx = -1;
     wchar_t temp[STR_NORM] = {0};
+
+    LTRACE(logger, IDS_TRACE_ENTER, L"CopyPassword()");
 
     idx = GridClick(grid, click, NULL, NULL, NULL);
     if(Clamped(idx, -1, PASS_COUNT))
@@ -95,15 +99,21 @@ void CopyPassword(const POINT click)
             Message(MSG_ERR, wnd.handl, L"%s", CLIPBOARD_ERROR);
         }
     }
+
+    LTRACE(logger, IDS_TRACE_EXIT, L"CopyPassword()");
 }
 
 /* set in the defaults for the app */
 void Defaults(void)
 {
+    LTRACE(logger, IDS_TRACE_ENTER, L"Defaults()");
+
     MemClear(&app, sizeof(app));
     StrCopy(app.bank, sizeof(app.bank), PASS_DEFAULT_BANK, 0);
     app.len = PASS_DEFAULT_LENGTH;
     app.locked = TRUE;
+
+    LTRACE(logger, IDS_TRACE_EXIT, L"Defaults()");
 }
 
 /* helper function to draw each password in the list */
@@ -112,12 +122,15 @@ static BOOL DrawPassword(const QUAD cell, const INDEX index, void *userdata)
     const long      count = PoolCount(pool);
     const COLORREF  clr = PoolColor((index % count), pool);
 
+    LTRACE(logger, IDS_TRACE_ENTER, L"DrawPassword()");
+
     if(userdata == NULL)
     {
         GphFontColor(gph, clr, GTRANS);
         GphText(gph, &cell, ALIGN_LEFT, L"%s", list[index]);
     }
 
+    LTRACE(logger, IDS_TRACE_EXIT, L"DrawPassword()");
     return(TRUE);
 }
 
@@ -126,6 +139,8 @@ void DrawPasswords(const HWND hwnd)
 {
     const HWND  plist = GetDlgItem(hwnd, IDC_PASS_LIST);
 
+    LTRACE(logger, IDS_TRACE_ENTER, L"DrawPasswords()");
+
     if(GphPaint(gph, plist))
     {
         GphClear(gph, NULL, LIST_BACK_COLOR);
@@ -133,6 +148,8 @@ void DrawPasswords(const HWND hwnd)
         GphBlit(gph);
         GphPaint(gph, plist);
     }
+
+    LTRACE(logger, IDS_TRACE_EXIT, L"DrawPasswords()");
 }
 
 /* create randomized passwords */
@@ -140,6 +157,8 @@ void GenPasswords(const BOOL grabconfig)
 {
     long    n = 0;
     wchar_t af[STR_TINY] = {0};
+
+    LTRACE(logger, IDS_TRACE_ENTER, L"GenPasswords()");
 
     if(grabconfig)
     {
@@ -157,11 +176,44 @@ void GenPasswords(const BOOL grabconfig)
         list[n][app.len] = CHARNULL;
         StrReplace(list[n], sizeof(list[n]), L"&", L"&&", FALSE);
     }
+
+    LTRACE(logger, IDS_TRACE_EXIT, L"GenPasswords()");
+}
+
+/* start up or shut down logging capabilites */
+BOOL Logging(const BOOL load)
+{
+    wchar_t path[STR_PATH] = {0};
+    BOOL    success = FALSE;
+
+    if(load)
+    {
+        // identify the path to log all application textual logs
+        if(FolderApp(path, sizeof(path), L"%s", APP_LOG))
+        {
+            // create the logging object
+            if(Log(path, &logger))
+            {
+                // pass the logging object to all DLLs which need it
+                UtilLogger(logger);
+                GphLogger(logger);
+                WinLogger(logger);
+                success = TRUE;
+            }
+        }
+    }else{
+        // stop the logging process and perform cleanup
+        success = LogKill(&logger);
+    }
+
+    return(success);
 }
 
 /* revert dialog settings to default, regenerate passwords */
 void ResetDialog(const HWND hwnd)
 {
+    LTRACE(logger, IDS_TRACE_ENTER, L"ResetDialog()");
+
     // set in defaults, place in dialog
     Defaults();
     SetupDialog();
@@ -169,6 +221,8 @@ void ResetDialog(const HWND hwnd)
     // now regenerate and draw the passwords
     GenPasswords(FALSE);
     DrawPasswords(hwnd);
+
+    LTRACE(logger, IDS_TRACE_EXIT, L"ResetDialog()");
 }
 
 /* load in previously saved settings or save settings out to file */
@@ -180,6 +234,8 @@ BOOL Settings(const BOOL load)
     wchar_t             path[STR_PATH] = {0};
 
     BOOL                success = FALSE;
+
+    LTRACE(logger, IDS_TRACE_ENTER, L"Settings()");
 
     // get system path for save data
     if(FolderApp(path, sizeof(path), L"%s", APP_FILE))
@@ -205,12 +261,15 @@ BOOL Settings(const BOOL load)
         Defaults();
     }
 
+    LTRACE(logger, IDS_TRACE_EXIT, L"Settings()");
     return(success);
 }
 
 /* configure dialog field controls */
 void SetupDialog(void)
 {
+    LTRACE(logger, IDS_TRACE_ENTER, L"SetupDialog()");
+
     // stretch out the bitmap display area
     SendDlgItemMessage(wnd.handl, IDC_PASS_LIST, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)GphBmp(gph));
 
@@ -224,6 +283,8 @@ void SetupDialog(void)
     // apply locking mechanism, if necessary
     ButtonCheck(wnd.handl, IDC_CHAR_LOCK, app.locked);
     Enable(wnd.handl, IDC_CHAR_SET, !app.locked);
+
+    LTRACE(logger, IDS_TRACE_EXIT, L"SetupDialog()");
 }
 
 /* helper function to initialize win32 graphics */
@@ -234,6 +295,8 @@ BOOL SetupGDI(void)
     long    c = 0;
 
     BOOL    success = FALSE;
+
+    LTRACE(logger, IDS_TRACE_ENTER, L"SetupGDI()");
 
     // adjust dialog client dimensions for password list
     if(Dims(wnd.handl, IDC_CONTROL_GROUP, &ctrl, NULL))
@@ -267,6 +330,7 @@ BOOL SetupGDI(void)
         }
     }
 
+    LTRACE(logger, IDS_TRACE_EXIT, L"SetupGDI()");
     return(success);
 }
 
@@ -274,6 +338,8 @@ BOOL SetupGDI(void)
 BOOL Standup(void)
 {
     BOOL    success = FALSE;
+
+    LTRACE(logger, IDS_TRACE_ENTER, L"Standup()");
 
     // set dialog caption and center on screen
     TextSet(wnd.handl, 0, L"%s %s", APP_TITLE, APP_VERSION);
@@ -295,16 +361,21 @@ BOOL Standup(void)
         }
     }
 
+    LTRACE(logger, IDS_TRACE_EXIT, L"Standup()");
     return(success);
 }
 
 /* stop and tear down application */
 void Shutdown(void)
 {
+    LTRACE(logger, IDS_TRACE_ENTER, L"Shutdown()");
+
     Settings(FALSE);
     PoolKill(&pool);
     FontKillGDI(font);
     GridKill(&grid);
     GphKill(&gph);
     WindowKill(&wnd);
+
+    LTRACE(logger, IDS_TRACE_EXIT, L"Shutdown()");
 }
